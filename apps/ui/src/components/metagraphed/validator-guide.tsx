@@ -3,13 +3,14 @@ import { ChevronDown, Info } from "lucide-react";
 import { classNames } from "@/lib/metagraphed/format";
 
 /**
- * Neutral, collapsible explainer that sits near the top of /validators so a
- * first-time visitor can understand what the directory's columns mean and how
- * to read them together before choosing a validator to delegate to (#5168).
+ * Neutral explainer near the top of /validators so a first-time visitor can
+ * understand what the directory's columns mean before choosing a validator to
+ * delegate to (#5168).
  *
  * Strictly factual — it explains the on-chain signals, it does not rank or
- * recommend any specific validator. Mirrors the collapsible-callout visual
- * language of MethodologyCallout.
+ * recommend any specific validator. Desktop is a collapsible callout (mirrors
+ * MethodologyCallout); mobile is an FAQ-style accordion where each metric
+ * expands on tap.
  */
 const METRICS: Array<{ term: string; def: string }> = [
   {
@@ -41,51 +42,83 @@ const METRICS: Array<{ term: string; def: string }> = [
 const GUIDANCE =
   "Read these signals together, not in isolation — a large validator concentrates stake and influence, while a smaller one spreads it. Commission and nominator counts (coming in #2548/#2549) will add to this picture. This directory describes the on-chain data; it does not rank or recommend any validator.";
 
+const HEADING = "How to evaluate a validator";
+const SUBHEADING = "What each column means and how to read them together";
+
 export function ValidatorGuide() {
   const [open, setOpen] = useState(false);
 
   return (
-    <aside
-      aria-label="How to evaluate a validator"
-      className="mb-6 rounded-lg border border-border bg-card/60"
-    >
-      <button
-        type="button"
-        onClick={() => setOpen((o) => !o)}
-        aria-expanded={open}
-        className="flex w-full items-start gap-2 px-3 py-2 text-left focus:outline-none focus-visible:ring-1 focus-visible:ring-ring"
-      >
-        <Info className="mt-0.5 size-3.5 shrink-0 text-accent" />
-        <span className="min-w-0 flex-1">
-          <span className="block font-mono text-[10px] uppercase tracking-widest text-ink-muted">
-            How to evaluate a validator
+    <aside aria-label={HEADING} className="mb-6 rounded-lg border border-border bg-card/60">
+      {/* Desktop / tablet: collapsible callout with the full grid. */}
+      <div className="hidden sm:block">
+        <button
+          type="button"
+          onClick={() => setOpen((o) => !o)}
+          aria-expanded={open}
+          className="flex w-full items-start gap-2 px-3 py-2 text-left focus:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+        >
+          <Info className="mt-0.5 size-3.5 shrink-0 text-accent" />
+          <span className="min-w-0 flex-1">
+            <span className="block font-mono text-[10px] uppercase tracking-widest text-ink-muted">
+              {HEADING}
+            </span>
+            <span className="mt-0.5 block font-mono text-[10px] text-ink-muted/80">
+              {SUBHEADING}
+            </span>
           </span>
-          <span className="mt-0.5 block font-mono text-[10px] text-ink-muted/80">
-            What each column means and how to read them together
+          <ChevronDown
+            className={classNames(
+              "mt-0.5 size-3.5 shrink-0 text-ink-muted transition-transform",
+              open && "rotate-180",
+            )}
+          />
+        </button>
+        {open ? (
+          <div className="border-t border-border px-3 py-3">
+            <dl className="grid gap-3 text-[11.5px] leading-relaxed text-ink-muted md:grid-cols-2">
+              {METRICS.map((m) => (
+                <div key={m.term}>
+                  <dt className="font-medium text-ink-strong">{m.term}</dt>
+                  <dd className="mt-0.5">{m.def}</dd>
+                </div>
+              ))}
+            </dl>
+            <p className="mt-3 border-t border-border pt-3 text-[11.5px] leading-relaxed text-ink-muted">
+              {GUIDANCE}
+            </p>
+          </div>
+        ) : null}
+      </div>
+
+      {/* Mobile: FAQ-style accordion — tap a metric to reveal its definition. */}
+      <div className="sm:hidden">
+        <div className="flex items-start gap-2 px-3 py-2">
+          <Info className="mt-0.5 size-3.5 shrink-0 text-accent" />
+          <span className="min-w-0 flex-1">
+            <span className="block font-mono text-[10px] uppercase tracking-widest text-ink-muted">
+              {HEADING}
+            </span>
+            <span className="mt-0.5 block font-mono text-[10px] text-ink-muted/80">
+              {SUBHEADING}
+            </span>
           </span>
-        </span>
-        <ChevronDown
-          className={classNames(
-            "mt-0.5 size-3.5 shrink-0 text-ink-muted transition-transform",
-            open && "rotate-180",
-          )}
-        />
-      </button>
-      {open ? (
-        <div className="border-t border-border px-3 py-3">
-          <dl className="grid gap-3 text-[11.5px] leading-relaxed text-ink-muted md:grid-cols-2">
-            {METRICS.map((m) => (
-              <div key={m.term}>
-                <dt className="font-medium text-ink-strong">{m.term}</dt>
-                <dd className="mt-0.5">{m.def}</dd>
-              </div>
-            ))}
-          </dl>
-          <p className="mt-3 border-t border-border pt-3 text-[11.5px] leading-relaxed text-ink-muted">
-            {GUIDANCE}
-          </p>
         </div>
-      ) : null}
+        <div className="divide-y divide-border border-t border-border">
+          {METRICS.map((m) => (
+            <details key={m.term} className="group px-3">
+              <summary className="flex cursor-pointer list-none items-center justify-between gap-2 py-2.5 text-[12px] font-medium text-ink-strong focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring [&::-webkit-details-marker]:hidden">
+                <span>{m.term}</span>
+                <ChevronDown className="size-3.5 shrink-0 text-ink-muted transition-transform group-open:rotate-180" />
+              </summary>
+              <p className="pb-2.5 text-[11.5px] leading-relaxed text-ink-muted">{m.def}</p>
+            </details>
+          ))}
+        </div>
+        <p className="border-t border-border px-3 py-3 text-[11.5px] leading-relaxed text-ink-muted">
+          {GUIDANCE}
+        </p>
+      </div>
     </aside>
   );
 }
